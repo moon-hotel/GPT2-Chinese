@@ -112,15 +112,20 @@ def sample_sequence(model, context, length, n_ctx, tokenizer, temperature=1.0,
     context = context.unsqueeze(0)  # [1, seq_len]
     generated = context
     with torch.no_grad():
-        for _ in trange(length):
+        for _ in trange(length,ncols=80):
             inputs = {"input_ids": generated[0][-(n_ctx - 1):].unsqueeze(0)}  # 为什么 -1 ???
             outputs = model(
                 **inputs
             )  # Note: we could also use 'past' with GPT-2/Transfo-XL/XLNet (cached hidden-states)
             next_token_logits = outputs[0][0, -1, :]  # 此处outputs的输出结果为一个元组，第0个元素为GPT2最后一层经过分类层（仅一个线性层）后的结果
             # 即outputs[0]的形状为[batch_size, seq_len, vocab_size], 此时next_token_logits 的形状为[vocab_size,]
-            for id in set(generated):  # 遍历干什么 ????
-                next_token_logits[id] /= repitition_penalty
+            for id in set(generated):
+                # 不知道为什么要用集合，下面的写法不需要去重。况且目前的写法也不能去重，不能用于tensor中元素的去重
+                # generated的形状为[1,seq_len],set(generated)后的形状为[seq_len]
+                next_token_logits[id] /= repitition_penalty  # repitition_penalty > 1.
+                # 目的是对于next_token_logits来说，尽可能使得已经出现在generated中的结果，下一次减少出现
+                # 例如generated = tensor([27,68,77,89]), 则 next_token_logits[id] /= repitition_penalty  将使得
+                # next_token_logits中27,68,77,89这4个位置上的值变小，进而预测结果再次为这4个值的情况减小
             next_token_logits = next_token_logits / temperature  # 调整分布 , shape: [vocab_size,]
             next_token_logits[tokenizer.convert_tokens_to_ids("[UNK]")] = -float("Inf")  # 将UNK设定为负无穷，忽略它的结果
             filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k, top_p=top_p)
@@ -165,10 +170,10 @@ def main():
     parser.add_argument("--temperature", default=1, type=float, required=False, help="生成温度")
     parser.add_argument("--topk", default=8, type=int, required=False, help="最高几选一")
     parser.add_argument("--topp", default=0, type=float, required=False, help="最高积累概率")
-    parser.add_argument("--model_config", default="config/model_config.json", type=str, required=False,
+    parser.add_argument("--model_config", default="model/config.json", type=str, required=False,
                         help="模型参数路径")
-    parser.add_argument("--tokenizer_path", default="vocab/vocab.txt", type=str, required=False, help="词表路径")
-    parser.add_argument("--model_path", default="model/epoch=0-step=99.ckpt", type=str, required=False, help="模型路径")
+    parser.add_argument("--tokenizer_path", default="model/vocab.txt", type=str, required=False, help="词表路径")
+    parser.add_argument("--model_path", default="model/pytorch_model.bin", type=str, required=False, help="模型路径")
     parser.add_argument("--prefix", default="先帝创业未半而中道崩殂", type=str, required=False, help="生成文章的开头")
     parser.add_argument("--no_wordpiece", action="store_true", help="不做word piece切词")
     parser.add_argument("--segment", action="store_true", help="中文以词为单位")
