@@ -124,12 +124,12 @@ class Net(pl.LightningModule):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", default="0", type=str, required=False, help="设置使用哪些显卡，用逗号分割")
-    parser.add_argument("--config_path", default="config/model_config.json", type=str, required=False,
+    parser.add_argument("--config_path", default="model/config.json", type=str, required=False,
                         help="选择模型参数")
-    parser.add_argument("--vocab_path", default="vocab/vocab.txt", type=str, required=False, help="选择词库")
+    parser.add_argument("--vocab_path", default="model/vocab.txt", type=str, required=False, help="选择词库")
     parser.add_argument("--data_path", default="data/train.json", type=str, required=False, help="原始训练语料")
     parser.add_argument("--epochs", default=5, type=int, required=False, help="训练循环")
-    parser.add_argument("--batch_size", default=8, type=int, required=False, help="训练batch size")
+    parser.add_argument("--batch_size", default=2, type=int, required=False, help="训练batch size")
     parser.add_argument("--lr", default=1.5e-4, type=float, required=False, help="学习率")
     parser.add_argument("--warmup_steps", default=2000, type=int, required=False, help="warm up步数")
     parser.add_argument("--max_length", default=1024, type=int, required=False, help="单条文本最长长度")
@@ -183,3 +183,4 @@ if __name__ == "__main__":
 
     # net.load_state_dict(d, strict=False)
     trainer.fit(net)
+    # cuda 10.2
