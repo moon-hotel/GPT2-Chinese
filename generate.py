@@ -113,7 +113,7 @@ def sample_sequence(model, context, length, n_ctx, tokenizer, temperature=1.0,
     generated = context
     with torch.no_grad():
         for _ in trange(length,ncols=80):
-            inputs = {"input_ids": generated[0][-(n_ctx - 1):].unsqueeze(0)}  # 为什么 -1 ???
+            inputs = {"input_ids": generated[0][-(n_ctx - 1):].unsqueeze(0)}  # 为什么 -1 ???，没搞懂，按道理不减也行
             outputs = model(
                 **inputs
             )  # Note: we could also use 'past' with GPT-2/Transfo-XL/XLNet (cached hidden-states)
@@ -125,7 +125,8 @@ def sample_sequence(model, context, length, n_ctx, tokenizer, temperature=1.0,
                 next_token_logits[id] /= repitition_penalty  # repitition_penalty > 1.
                 # 目的是对于next_token_logits来说，尽可能使得已经出现在generated中的结果，下一次减少出现
                 # 例如generated = tensor([27,68,77,89]), 则 next_token_logits[id] /= repitition_penalty  将使得
-                # next_token_logits中27,68,77,89这4个位置上的值变小，进而预测结果再次为这4个值的情况减小
+                # next_token_logits中27,68,77,89这4个位置上的值变小，因为这4个字在已经生成的序列中已经存在了
+                # 进而预测结果再次为这4个值的情况减小
             next_token_logits = next_token_logits / temperature  # 调整分布 , shape: [vocab_size,]
             next_token_logits[tokenizer.convert_tokens_to_ids("[UNK]")] = -float("Inf")  # 将UNK设定为负无穷，忽略它的结果
             filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k, top_p=top_p)
@@ -218,3 +219,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # 如果预训练模型失效，可以关注公众号：月来客栈 回复 gpt-2 获取!
+    # 这里还需要注意的是，transformer包的版本需要为4.18.0，严格按照requirements.txt里面的依赖安装即可
