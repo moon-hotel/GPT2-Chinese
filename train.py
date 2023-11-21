@@ -94,7 +94,7 @@ class Net(pl.LightningModule):
         定义用于验证的迭代器
         """
         return DataLoader(self.dataset_valid, batch_size=self.batch_size,
-                          num_workers=8, shuffle=True, drop_last=True)
+                          num_workers=8, drop_last=True)
 
     def configure_optimizers(self):
         """
@@ -128,7 +128,7 @@ class Net(pl.LightningModule):
         return {"val_loss": avg_loss}
 
 
-if __name__ == "__main__s":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", default="0", type=str, required=False, help="设置使用哪些显卡，用逗号分割")
     parser.add_argument("--config_path", default="model/config.json", type=str, required=False,
@@ -136,8 +136,8 @@ if __name__ == "__main__s":
     parser.add_argument("--vocab_path", default="model/vocab.txt", type=str, required=False, help="选择词库")
     parser.add_argument("--data_path", default="data/train.json", type=str, required=False, help="原始训练语料")
     parser.add_argument("--epochs", default=5, type=int, required=False, help="训练循环")
-    parser.add_argument("--batch_size", default=2, type=int, required=False, help="训练batch size")
-    parser.add_argument("--lr", default=1.5e-4, type=float, required=False, help="学习率")
+    parser.add_argument("--batch_size", default=8, type=int, required=False, help="训练batch size")
+    parser.add_argument("--lr", default=1e-4, type=float, required=False, help="学习率")
     parser.add_argument("--warmup_steps", default=2000, type=int, required=False, help="warm up步数")
     parser.add_argument("--max_length", default=256, type=int, required=False, help="单条文本最长长度")
     parser.add_argument("--eval_interval", default=100, type=int, required=False, help="多少batch在验证集上验证一次")
